@@ -12,7 +12,8 @@ import {
   Box,
   Snackbar,
   Alert,
-  Chip
+  Chip,
+  Slider
 } from '@mui/material';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -21,7 +22,9 @@ const RSVPForm = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    mobile: '',
     guestType: 'adult',
+    adultCount: 1,
     childAge: '',
     message: '',
     attending: 'yes'
@@ -43,6 +46,13 @@ const RSVPForm = () => {
     setError('');
 
     try {
+      // Validate required fields
+      if (!formData.name.trim()) {
+        setError('Name is required');
+        setLoading(false);
+        return;
+      }
+
       // Validate child age if guest type is child
       if (formData.guestType === 'child') {
         const age = parseInt(formData.childAge);
@@ -53,9 +63,17 @@ const RSVPForm = () => {
         }
       }
 
+      // Validate mobile number format (basic validation)
+      if (formData.mobile && !/^\+?[\d\s\-()]{10,15}$/.test(formData.mobile.replace(/\s/g, ''))) {
+        setError('Please enter a valid mobile number');
+        setLoading(false);
+        return;
+      }
+
       // Submit to Firestore
       await addDoc(collection(db, 'rsvps'), {
         ...formData,
+        adultCount: formData.guestType === 'adult' ? formData.adultCount : null,
         childAge: formData.guestType === 'child' ? parseInt(formData.childAge) : null,
         timestamp: serverTimestamp(),
         status: 'confirmed'
@@ -65,7 +83,9 @@ const RSVPForm = () => {
       setFormData({
         name: '',
         email: '',
+        mobile: '',
         guestType: 'adult',
+        adultCount: 1,
         childAge: '',
         message: '',
         attending: 'yes'
@@ -96,11 +116,22 @@ const RSVPForm = () => {
 
         <TextField
           fullWidth
-          label="Email"
+          label="Email (Optional)"
           type="email"
           value={formData.email}
           onChange={(e) => handleInputChange('email', e.target.value)}
-          required
+          helperText="Email is optional but recommended for updates"
+          sx={{ mb: 3 }}
+        />
+
+        <TextField
+          fullWidth
+          label="Mobile Number"
+          type="tel"
+          value={formData.mobile}
+          onChange={(e) => handleInputChange('mobile', e.target.value)}
+          placeholder="+1 (555) 123-4567"
+          helperText="Required for event reminders"
           sx={{ mb: 3 }}
         />
 
@@ -146,6 +177,32 @@ const RSVPForm = () => {
                 />
               </RadioGroup>
             </FormControl>
+
+            {formData.guestType === 'adult' && (
+              <Box sx={{ mb: 3 }}>
+                <FormLabel component="legend" sx={{ mb: 2, display: 'block' }}>
+                  Number of Adults: {formData.adultCount}
+                </FormLabel>
+                <Slider
+                  value={formData.adultCount}
+                  onChange={(e, value) => handleInputChange('adultCount', value)}
+                  min={1}
+                  max={8}
+                  marks={[
+                    { value: 1, label: '1' },
+                    { value: 2, label: '2' },
+                    { value: 4, label: '4' },
+                    { value: 6, label: '6' },
+                    { value: 8, label: '8+' }
+                  ]}
+                  valueLabelDisplay="auto"
+                  sx={{ px: 2 }}
+                />
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  Select the number of adults attending (ages 18+)
+                </Typography>
+              </Box>
+            )}
 
             {formData.guestType === 'child' && (
               <TextField
