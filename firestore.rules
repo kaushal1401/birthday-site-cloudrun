@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // RSVP collection - allow read and write for all users
+    match /rsvps/{document} {
+      allow read, write: if true;
+    }
+    
+    // Messages collection - allow read and write for all users
+    match /messages/{document} {
+      allow read, write: if true;
+    }
+    
+    // For future collections that might need more security
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

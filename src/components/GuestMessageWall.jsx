@@ -15,10 +15,9 @@ import {
   Fade
 } from '@mui/material';
 import { Send as SendIcon, Person as PersonIcon, ChildCare as ChildIcon } from '@mui/icons-material';
-import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { db } from '../firebase';
+import { messagesService } from '../services/firestoreService';
 
-const GuestMessageWall = () => {
+const GuestMessageWall = ({ onNewMessage }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState({
     name: '',
@@ -30,19 +29,22 @@ const GuestMessageWall = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Subscribe to messages from Firestore
-    const q = query(collection(db, 'messages'), orderBy('timestamp', 'desc'));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const messagesData = [];
-      querySnapshot.forEach((doc) => {
-        messagesData.push({ id: doc.id, ...doc.data() });
-      });
-      setMessages(messagesData);
-    }, (error) => {
-      console.error('Error fetching messages:', error);
-    });
+    // Load messages from Firestore
+    const loadMessages = async () => {
+      try {
+        const messagesData = await messagesService.getMessages();
+        setMessages(messagesData);
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      }
+    };
 
-    return () => unsubscribe();
+    loadMessages();
+    
+    // Set up polling for real-time updates
+    const interval = setInterval(loadMessages, 5000); // Poll every 5 seconds
+    
+    return () => clearInterval(interval);
   }, []);
 
   const handleSubmit = async (e) => {
@@ -56,14 +58,25 @@ const GuestMessageWall = () => {
     setError('');
 
     try {
-      await addDoc(collection(db, 'messages'), {
-        ...newMessage,
-        timestamp: serverTimestamp(),
-        approved: true // Auto-approve for now, admin can delete if needed
-      });
+      const messageData = {
+        name: newMessage.name,
+        message: newMessage.message,
+        guestType: newMessage.guestType
+      };
+      
+      await messagesService.createMessage(messageData);
 
       setSuccess(true);
       setNewMessage({ name: '', message: '', guestType: 'adult' });
+      
+      // Call the callback to show message on home page
+      if (onNewMessage) {
+        onNewMessage(messageData);
+      }
+      
+      // Refresh messages
+      const messagesData = await messagesService.getMessages();
+      setMessages(messagesData);
     } catch (err) {
       console.error('Error posting message:', err);
       setError('Failed to post message. Please try again.');
@@ -80,13 +93,36 @@ const GuestMessageWall = () => {
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return '';
-    const date = timestamp.toDate();
+    
+    // Handle Firestore Timestamp objects
+    let date;
+    if (timestamp.toDate) {
+      date = timestamp.toDate();
+    } else if (timestamp.seconds) {
+      date = new Date(timestamp.seconds * 1000);
+    } else {
+      date = new Date(timestamp);
+    }
+    
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
-    <Paper elevation={3} sx={{ p: 4, mb: 4, backgroundColor: 'rgba(255, 255, 255, 0.05)' }}>
-      <Typography variant="h4" gutterBottom align="center" color="primary">
+    <Paper elevation={6} sx={{ 
+      p: 4, 
+      mb: 4, 
+      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 245, 250, 0.9) 100%)',
+      borderRadius: 4,
+      backdropFilter: 'blur(10px)',
+      border: '1px solid rgba(255, 182, 193, 0.3)'
+    }}>
+      <Typography variant="h4" gutterBottom align="center" sx={{
+        background: 'linear-gradient(45deg, #FF6B9D 30%, #4ECDC4 90%)',
+        backgroundClip: 'text',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        fontWeight: 'bold'
+      }}>
         💌 Guest Message Wall 💌
       </Typography>
       <Typography variant="body1" align="center" sx={{ mb: 4, color: 'text.secondary' }}>
@@ -94,7 +130,13 @@ const GuestMessageWall = () => {
       </Typography>
 
       {/* Message Form */}
-      <Box component="form" onSubmit={handleSubmit} sx={{ mb: 4 }}>
+      <Box component="form" onSubmit={handleSubmit} sx={{ 
+        mb: 4,
+        p: 3,
+        background: 'linear-gradient(135deg, #FFE5F1 0%, #E8F8F5 100%)',
+        borderRadius: 3,
+        border: '1px solid rgba(255, 107, 157, 0.2)'
+      }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={4}>
             <TextField
@@ -103,6 +145,12 @@ const GuestMessageWall = () => {
               value={newMessage.name}
               onChange={(e) => setNewMessage(prev => ({ ...prev, name: e.target.value }))}
               required
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 3,
+                  background: 'rgba(255, 255, 255, 0.8)'
+                }
+              }}
             />
           </Grid>
           <Grid item xs={12} sm={8}>
@@ -113,8 +161,14 @@ const GuestMessageWall = () => {
               rows={2}
               value={newMessage.message}
               onChange={(e) => setNewMessage(prev => ({ ...prev, message: e.target.value }))}
-              placeholder="Write a sweet birthday message..."
+              placeholder="Write a sweet birthday message... 🎂✨"
               required
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 3,
+                  background: 'rgba(255, 255, 255, 0.8)'
+                }
+              }}
             />
           </Grid>
           <Grid item xs={12}>
@@ -123,7 +177,16 @@ const GuestMessageWall = () => {
               variant="contained"
               startIcon={<SendIcon />}
               disabled={loading}
-              sx={{ float: 'right' }}
+              sx={{ 
+                float: 'right',
+                borderRadius: 3,
+                background: 'linear-gradient(45deg, #FF6B9D 30%, #4ECDC4 90%)',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #FF6B9D 60%, #4ECDC4 100%)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 8px 25px rgba(255, 107, 157, 0.3)'
+                }
+              }}
             >
               {loading ? 'Posting...' : 'Post Message 🎈'}
             </Button>
@@ -132,7 +195,7 @@ const GuestMessageWall = () => {
       </Box>
 
       {/* Messages Display */}
-      <Box sx={{ maxHeight: '500px', overflowY: 'auto', pr: 1 }}>
+      <Box sx={{ maxHeight: '600px', overflowY: 'auto', pr: 1 }}>
         {messages.length === 0 ? (
           <Typography variant="body1" align="center" color="text.secondary" sx={{ py: 4 }}>
             Be the first to leave a birthday message! 🎉
@@ -140,29 +203,54 @@ const GuestMessageWall = () => {
         ) : (
           messages.map((message, index) => (
             <Fade in={true} timeout={500 + index * 100} key={message.id}>
-              <Card sx={{ mb: 2, backgroundColor: 'rgba(255, 255, 255, 0.02)' }}>
+              <Card sx={{ 
+                mb: 3, 
+                background: index % 2 === 0 
+                  ? 'linear-gradient(135deg, #FFE5F1 0%, #FFF9E7 100%)'
+                  : 'linear-gradient(135deg, #E8F8F5 0%, #FFEAA7 100%)',
+                borderRadius: 4,
+                border: `2px solid ${index % 2 === 0 ? 'rgba(255, 107, 157, 0.2)' : 'rgba(78, 205, 196, 0.2)'}`,
+                transform: 'translateY(0)',
+                transition: 'all 0.3s ease',
+                animation: `messageFloat 3s ease-in-out infinite ${index * 0.5}s`,
+                '@keyframes messageFloat': {
+                  '0%, 100%': { transform: 'translateY(0px)' },
+                  '50%': { transform: 'translateY(-5px)' }
+                },
+                '&:hover': {
+                  transform: 'translateY(-8px) scale(1.02)',
+                  boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
+                }
+              }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <Avatar 
                       sx={{ 
                         bgcolor: getAvatarColor(message.name), 
                         mr: 2,
-                        width: 40,
-                        height: 40
+                        width: 45,
+                        height: 45,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
                       }}
                     >
                       {message.guestType === 'child' ? <ChildIcon /> : <PersonIcon />}
                     </Avatar>
                     <Box sx={{ flexGrow: 1 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="h6" color="primary">
+                        <Typography variant="h6" sx={{ 
+                          color: index % 2 === 0 ? '#C44569' : '#2C7A74',
+                          fontWeight: 'bold'
+                        }}>
                           {message.name}
                         </Typography>
                         <Chip 
-                          label={message.guestType === 'child' ? 'Child' : 'Adult'} 
+                          label={message.guestType === 'child' ? '👶 Child' : '👤 Adult'} 
                           size="small" 
-                          color={message.guestType === 'child' ? 'secondary' : 'primary'}
-                          variant="outlined"
+                          sx={{
+                            backgroundColor: message.guestType === 'child' ? '#4ECDC4' : '#FF6B9D',
+                            color: 'white',
+                            fontWeight: 'bold'
+                          }}
                         />
                       </Box>
                       <Typography variant="caption" color="text.secondary">
@@ -170,8 +258,16 @@ const GuestMessageWall = () => {
                       </Typography>
                     </Box>
                   </Box>
-                  <Typography variant="body1" sx={{ pl: 7 }}>
-                    {message.message}
+                  <Typography variant="body1" sx={{ 
+                    pl: 7,
+                    fontSize: '1.1rem',
+                    lineHeight: 1.6,
+                    color: '#2D3436'
+                  }}>
+                    {message.message} 
+                    <Box component="span" sx={{ ml: 1 }}>
+                      {['🎉', '🎂', '🎈', '✨', '🌟', '💖'][Math.floor(Math.random() * 6)]}
+                    </Box>
                   </Typography>
                 </CardContent>
               </Card>

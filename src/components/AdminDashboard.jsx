@@ -32,8 +32,7 @@ import {
   People as PeopleIcon,
   Message as MessageIcon
 } from '@mui/icons-material';
-import { collection, onSnapshot, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { rsvpService, messagesService } from '../services/firestoreService';
 
 const AdminDashboard = () => {
   const [currentTab, setCurrentTab] = useState(0);
@@ -51,50 +50,60 @@ const AdminDashboard = () => {
   });
 
   useEffect(() => {
-    // Subscribe to RSVPs
-    const rsvpQuery = query(collection(db, 'rsvps'), orderBy('timestamp', 'desc'));
-    const unsubscribeRsvps = onSnapshot(rsvpQuery, (querySnapshot) => {
-      const rsvpData = [];
-      querySnapshot.forEach((doc) => {
-        rsvpData.push({ id: doc.id, ...doc.data() });
-      });
-      setRsvps(rsvpData);
-      
-      // Calculate stats
-      const attending = rsvpData.filter(r => r.attending === 'yes');
-      setStats(prev => ({
-        ...prev,
-        totalRsvps: rsvpData.length,
-        attending: attending.length,
-        adults: attending.filter(r => r.guestType === 'adult').length,
-        children: attending.filter(r => r.guestType === 'child').length
-      }));
-    });
+    // Load data from Firestore
+    const loadData = async () => {
+      try {
+        // Load RSVPs
+        const rsvpData = await rsvpService.getRSVPs();
+        setRsvps(rsvpData);
+        
+        // Calculate stats
+        const attending = rsvpData.filter(r => r.attending === 'yes');
+        const totalAdults = attending.reduce((sum, r) => sum + (r.adultCount || r.adults || 0), 0);
+        const totalChildren = attending.reduce((sum, r) => sum + (r.childrenCount || r.children?.length || 0), 0);
+        
+        setStats(prev => ({
+          ...prev,
+          totalRsvps: rsvpData.length,
+          attending: attending.length,
+          adults: totalAdults,
+          children: totalChildren
+        }));
 
-    // Subscribe to Messages
-    const messageQuery = query(collection(db, 'messages'), orderBy('timestamp', 'desc'));
-    const unsubscribeMessages = onSnapshot(messageQuery, (querySnapshot) => {
-      const messageData = [];
-      querySnapshot.forEach((doc) => {
-        messageData.push({ id: doc.id, ...doc.data() });
-      });
-      setMessages(messageData);
-      setStats(prev => ({ ...prev, totalMessages: messageData.length }));
-    });
-
-    return () => {
-      unsubscribeRsvps();
-      unsubscribeMessages();
+        // Load Messages
+        const messageData = await messagesService.getMessages();
+        setMessages(messageData);
+        setStats(prev => ({ ...prev, totalMessages: messageData.length }));
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
     };
+
+    loadData();
+    
+    // Set up polling for updates
+    const interval = setInterval(loadData, 10000); // Poll every 10 seconds
+    
+    return () => clearInterval(interval);
   }, []);
 
   const handleDelete = async () => {
     try {
-      await deleteDoc(doc(db, deleteDialog.type === 'rsvp' ? 'rsvps' : 'messages', deleteDialog.id));
+      if (deleteDialog.type === 'rsvp') {
+        await rsvpService.deleteRSVP(deleteDialog.id);
+        const rsvpData = await rsvpService.getRSVPs();
+        setRsvps(rsvpData);
+      } else {
+        await messagesService.deleteMessage(deleteDialog.id);
+        const messageData = await messagesService.getMessages();
+        setMessages(messageData);
+      }
+      
       setSuccess(`${deleteDialog.type === 'rsvp' ? 'RSVP' : 'Message'} deleted successfully`);
       setDeleteDialog({ open: false, type: '', id: '', name: '' });
     } catch (error) {
-      console.error('Error deleting:', error);
+      console.error('Error deleting item:', error);
+      setSuccess('Error deleting item. Please try again.');
     }
   };
 
@@ -104,22 +113,42 @@ const AdminDashboard = () => {
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return '';
-    const date = timestamp.toDate();
+    
+    // Handle different timestamp formats
+    let date;
+    if (timestamp instanceof Date) {
+      date = timestamp;
+    } else if (typeof timestamp === 'string') {
+      date = new Date(timestamp);
+    } else if (timestamp.toDate) {
+      date = timestamp.toDate(); // Firestore Timestamp
+    } else if (timestamp.seconds) {
+      date = new Date(timestamp.seconds * 1000);
+    } else {
+      date = new Date(timestamp);
+    }
+    
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const filteredRsvps = rsvps.filter(rsvp => 
-    rsvp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    rsvp.email.toLowerCase().includes(searchTerm.toLowerCase())
+    rsvp.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    rsvp.mobile?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    rsvp.message?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredMessages = messages.filter(message => 
-    message.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    message.message.toLowerCase().includes(searchTerm.toLowerCase())
+    message.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    message.message?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const StatCard = ({ title, value, icon, color = 'primary' }) => (
-    <Card sx={{ height: '100%', backgroundColor: 'rgba(255, 255, 255, 0.05)' }}>
+    <Card sx={{ 
+      height: '100%', 
+      background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF9E7 100%)',
+      border: '1px solid rgba(255, 215, 0, 0.3)',
+      boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+    }}>
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
           {icon}
@@ -135,7 +164,13 @@ const AdminDashboard = () => {
   );
 
   return (
-    <Paper elevation={3} sx={{ p: 4, backgroundColor: 'rgba(255, 255, 255, 0.05)' }}>
+    <Paper elevation={6} sx={{ 
+      p: 4, 
+      background: 'linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 50%, #E9ECEF 100%)',
+      borderRadius: 3,
+      border: '2px solid #FFD700',
+      boxShadow: '0 8px 16px rgba(255, 215, 0, 0.2)'
+    }}>
       <Typography variant="h4" gutterBottom align="center" color="primary">
         👑 Admin Dashboard 👑
       </Typography>
@@ -201,15 +236,20 @@ const AdminDashboard = () => {
 
       {/* Guest List Tab */}
       {currentTab === 0 && (
-        <TableContainer>
+        <TableContainer component={Paper} sx={{ 
+          background: 'linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 100%)',
+          border: '1px solid rgba(255, 215, 0, 0.2)',
+          borderRadius: 2
+        }}>
           <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Name</TableCell>
-                <TableCell>Email</TableCell>
+                <TableCell>Mobile</TableCell>
                 <TableCell>Status</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Age</TableCell>
+                <TableCell>Adults</TableCell>
+                <TableCell>Children</TableCell>
+                <TableCell>Message</TableCell>
                 <TableCell>Date</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
@@ -218,7 +258,7 @@ const AdminDashboard = () => {
               {filteredRsvps.map((rsvp) => (
                 <TableRow key={rsvp.id}>
                   <TableCell>{rsvp.name}</TableCell>
-                  <TableCell>{rsvp.email}</TableCell>
+                  <TableCell>{rsvp.mobile || 'N/A'}</TableCell>
                   <TableCell>
                     <Chip 
                       label={rsvp.attending === 'yes' ? 'Attending' : 'Not Attending'} 
@@ -228,13 +268,22 @@ const AdminDashboard = () => {
                   </TableCell>
                   <TableCell>
                     <Chip 
-                      label={rsvp.guestType === 'child' ? 'Child' : 'Adult'} 
-                      color={rsvp.guestType === 'child' ? 'secondary' : 'primary'}
+                      label={rsvp.adultCount || rsvp.adults || 0} 
+                      color="primary"
                       size="small"
                     />
                   </TableCell>
-                  <TableCell>{rsvp.childAge || '-'}</TableCell>
-                  <TableCell>{formatTimestamp(rsvp.timestamp)}</TableCell>
+                  <TableCell>
+                    <Chip 
+                      label={rsvp.childrenCount || rsvp.children?.length || 0} 
+                      color="secondary"
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {rsvp.message || '-'}
+                  </TableCell>
+                  <TableCell>{formatTimestamp(rsvp.createdAt)}</TableCell>
                   <TableCell>
                     <IconButton 
                       color="error" 
@@ -252,7 +301,11 @@ const AdminDashboard = () => {
 
       {/* Messages Tab */}
       {currentTab === 1 && (
-        <TableContainer>
+        <TableContainer component={Paper} sx={{ 
+          background: 'linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 100%)',
+          border: '1px solid rgba(255, 215, 0, 0.2)',
+          borderRadius: 2
+        }}>
           <Table>
             <TableHead>
               <TableRow>
