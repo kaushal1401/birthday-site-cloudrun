@@ -244,10 +244,21 @@ const BabyJourney = () => {
               fontSize: { xs: '0.8rem', md: '1rem' },
               color: 'rgba(255, 255, 255, 0.8)',
               minWidth: { xs: 80, md: 120 },
+              minHeight: { xs: '48px', md: '48px' }, // Ensure minimum touch target
+              padding: { xs: '12px 16px', md: '12px 16px' },
+              touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'transparent',
               '&.Mui-selected': {
                 color: 'white',
                 fontWeight: 700
-              }
+              },
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              },
+              '&:active': {
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              },
+              transition: 'all 0.2s ease'
             },
             '& .MuiTabs-indicator': {
               backgroundColor: 'white',
@@ -284,40 +295,58 @@ const BabyJourney = () => {
             onClick={handlePreviousMonth}
             sx={{
               position: 'absolute',
-              left: 16,
+              left: { xs: 8, md: 16 },
               top: '50%',
               transform: 'translateY(-50%)',
               zIndex: 2,
               backgroundColor: 'rgba(255, 255, 255, 0.95)',
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              minWidth: { xs: '48px', md: '48px' }, // Ensure minimum touch target
+              minHeight: { xs: '48px', md: '48px' },
+              padding: { xs: '12px', md: '12px' },
               '&:hover': {
                 backgroundColor: 'white',
                 transform: 'translateY(-50%) scale(1.1)',
               },
-              transition: 'all 0.3s ease'
+              '&:active': {
+                transform: 'translateY(-50%) scale(0.95)',
+              },
+              transition: 'all 0.2s ease',
+              touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'transparent'
             }}
+            aria-label="Previous month"
           >
-            <NavigateBefore sx={{ color: '#ff6b9d', fontSize: 30 }} />
+            <NavigateBefore sx={{ color: '#ff6b9d', fontSize: { xs: 28, md: 30 } }} />
           </IconButton>
           
           <IconButton
             onClick={handleNextMonth}
             sx={{
               position: 'absolute',
-              right: 16,
+              right: { xs: 8, md: 16 },
               top: '50%',
               transform: 'translateY(-50%)',
               zIndex: 2,
               backgroundColor: 'rgba(255, 255, 255, 0.95)',
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              minWidth: { xs: '48px', md: '48px' }, // Ensure minimum touch target
+              minHeight: { xs: '48px', md: '48px' },
+              padding: { xs: '12px', md: '12px' },
               '&:hover': {
                 backgroundColor: 'white',
                 transform: 'translateY(-50%) scale(1.1)',
               },
-              transition: 'all 0.3s ease'
+              '&:active': {
+                transform: 'translateY(-50%) scale(0.95)',
+              },
+              transition: 'all 0.2s ease',
+              touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'transparent'
             }}
+            aria-label="Next month"
           >
-            <NavigateNext sx={{ color: '#ff6b9d', fontSize: 30 }} />
+            <NavigateNext sx={{ color: '#ff6b9d', fontSize: { xs: 28, md: 30 } }} />
           </IconButton>
 
           {/* Month Header */}
@@ -474,12 +503,22 @@ const BabyJourney = () => {
                             onClick={(e) => handleLike(photo.url, e)}
                             sx={{ 
                               color: 'white',
+                              minWidth: { xs: '48px', sm: '40px' }, // Larger touch target on mobile
+                              minHeight: { xs: '48px', sm: '40px' },
+                              padding: { xs: '12px', sm: '8px' },
                               '&:hover': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
                                 transform: 'scale(1.2)',
                               },
-                              transition: 'all 0.3s ease'
+                              '&:active': {
+                                transform: 'scale(0.95)',
+                                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                              },
+                              transition: 'all 0.2s ease',
+                              touchAction: 'manipulation',
+                              WebkitTapHighlightColor: 'transparent'
                             }}
+                            aria-label={`Like photo from ${currentMonth.name}`}
                           >
                             {likes[photo.url] > 0 ? (
                               <Favorite sx={{ color: '#ff6b9d' }} />

@@ -89,11 +89,15 @@ function App() {
       <BirthdayBackground />
       <Box sx={{ 
         minHeight: '100vh',
+        width: '100%',
+        maxWidth: '100vw',
+        overflowX: 'hidden',
         background: `
           linear-gradient(135deg, #FFE5F1 0%, #E8F8F5 50%, #FFF9E7 100%)
         `,
         position: 'relative',
-        py: 2,
+        py: { xs: 1, sm: 2 },
+        px: 0,
         '&::before': {
           content: '""',
           position: 'absolute',
@@ -116,7 +120,7 @@ function App() {
           left: '5%',
           right: '5%',
           bottom: '10%',
-          fontSize: '3rem',
+          fontSize: { xs: '1.5rem', sm: '2rem', md: '3rem' },
           opacity: 0.03,
           display: 'flex',
           flexWrap: 'wrap',
@@ -295,8 +299,8 @@ function App() {
         {/* RSVP FAB - Left side with text */}
         <Box sx={{ 
           position: 'fixed', 
-          bottom: 20, 
-          left: 20, 
+          bottom: { xs: 16, sm: 20 }, 
+          left: { xs: 16, sm: 20 }, 
           zIndex: 1000,
           display: 'flex',
           alignItems: 'center',
@@ -309,16 +313,28 @@ function App() {
               background: 'linear-gradient(45deg, #FF6B9D 30%, #4FC3F7 90%)',
               color: 'white',
               fontWeight: 'bold',
-              px: 3,
+              px: { xs: 2, sm: 3 },
+              py: { xs: 1, sm: 1.5 },
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              minHeight: { xs: '48px', sm: '56px' }, // Minimum touch target size
+              minWidth: { xs: '80px', sm: '100px' },
               '&:hover': {
                 background: 'linear-gradient(45deg, #FF6B9D 60%, #4FC3F7 100%)',
                 transform: 'scale(1.05)',
               },
-              transition: 'all 0.3s ease'
+              '&:active': {
+                transform: 'scale(0.98)', // Visual feedback on press
+              },
+              transition: 'all 0.3s ease',
+              // Better touch interaction
+              touchAction: 'manipulation',
+              userSelect: 'none',
+              WebkitTapHighlightColor: 'transparent'
             }}
             onClick={() => setRsvpOpen(true)}
+            aria-label="Open RSVP Form"
           >
-            <RSVPIcon sx={{ mr: 1 }} />
+            <RSVPIcon sx={{ mr: 1, fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
             RSVP
           </Fab>
         </Box>
@@ -328,19 +344,29 @@ function App() {
           color="secondary" 
           sx={{ 
             position: 'fixed', 
-            bottom: 20, 
-            right: 20, 
+            bottom: { xs: 16, sm: 20 }, 
+            right: { xs: 16, sm: 20 }, 
             zIndex: 1000,
+            minHeight: { xs: '48px', sm: '56px' }, // Minimum touch target size
+            minWidth: { xs: '48px', sm: '56px' },
             background: 'linear-gradient(45deg, #9C27B0 30%, #673AB7 90%)',
             '&:hover': {
               background: 'linear-gradient(45deg, #9C27B0 60%, #673AB7 100%)',
               transform: 'scale(1.05)',
             },
-            transition: 'all 0.3s ease'
+            '&:active': {
+              transform: 'scale(0.98)', // Visual feedback on press
+            },
+            transition: 'all 0.3s ease',
+            // Better touch interaction
+            touchAction: 'manipulation',
+            userSelect: 'none',
+            WebkitTapHighlightColor: 'transparent'
           }}
           onClick={() => setAdminOpen(true)}
+          aria-label="Open Admin Panel"
         >
-          <AdminIcon />
+          <AdminIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
         </Fab>
 
         {/* RSVP Dialog with Enhanced Styling */}
@@ -349,13 +375,16 @@ function App() {
           onClose={() => setRsvpOpen(false)} 
           maxWidth="md" 
           fullWidth
+          fullScreen={window.innerWidth < 600} // Full screen on mobile for better UX
           PaperProps={{
             sx: {
-              borderRadius: 6,
+              borderRadius: { xs: 0, sm: 6 }, // No border radius on mobile
               background: 'linear-gradient(135deg, #FFF8F0 0%, #FFE5F1 50%, #E8F8F5 100%)',
-              border: '4px solid #FF6B9D',
+              border: { xs: 'none', sm: '4px solid #FF6B9D' },
               boxShadow: '0 20px 40px rgba(255, 107, 157, 0.3)',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              margin: { xs: 0, sm: 2 },
+              maxHeight: { xs: '100vh', sm: '90vh' }
             }
           }}
         >
@@ -366,10 +395,11 @@ function App() {
             background: 'linear-gradient(45deg, #FF6B9D 30%, #4FC3F7 60%, #FFD700 90%)',
             color: 'white',
             fontFamily: '"Comic Sans MS", cursive, sans-serif',
-            fontSize: '2.2rem',
+            fontSize: { xs: '1.5rem', sm: '2.2rem' },
             fontWeight: 'bold',
             textShadow: '3px 3px 6px rgba(0,0,0,0.4)',
-            py: 3,
+            py: { xs: 2, sm: 3 },
+            px: { xs: 2, sm: 3 },
             position: 'relative',
             '&::before': {
               content: '"🎉 🎈 🎂 🎁 🎊"',
@@ -378,7 +408,7 @@ function App() {
               left: 0,
               right: 0,
               bottom: 0,
-              fontSize: '1rem',
+              fontSize: { xs: '0.8rem', sm: '1rem' },
               opacity: 0.1,
               display: 'flex',
               alignItems: 'center',
@@ -386,20 +416,32 @@ function App() {
               pointerEvents: 'none'
             }
           }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1,
+              fontSize: { xs: '1.2rem', sm: '1.5rem' }
+            }}>
               🎂 Join Kashvi's Birthday Party! 🎂
             </Box>
             <IconButton 
               onClick={() => setRsvpOpen(false)} 
               sx={{ 
                 color: 'white',
-                background: 'rgba(255,255,255,0.2)',
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                minWidth: { xs: '44px', sm: '48px' }, // Minimum touch target
+                minHeight: { xs: '44px', sm: '48px' },
                 '&:hover': {
-                  background: 'rgba(255,255,255,0.3)',
-                  transform: 'rotate(90deg)'
+                  backgroundColor: 'rgba(255, 255, 255, 0.3)',
                 },
-                transition: 'all 0.3s ease'
+                '&:active': {
+                  transform: 'scale(0.95)',
+                },
+                transition: 'all 0.2s ease',
+                touchAction: 'manipulation',
+                WebkitTapHighlightColor: 'transparent'
               }}
+              aria-label="Close RSVP Dialog"
             >
               <CloseIcon />
             </IconButton>

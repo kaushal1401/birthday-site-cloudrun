@@ -181,11 +181,21 @@ const GuestMessageWall = ({ onNewMessage }) => {
                 float: 'right',
                 borderRadius: 3,
                 background: 'linear-gradient(45deg, #FF6B9D 30%, #4ECDC4 90%)',
+                minWidth: { xs: '120px', md: '140px' },
+                minHeight: { xs: '48px', md: '48px' }, // Ensure minimum touch target
+                padding: { xs: '12px 24px', md: '8px 16px' },
+                fontSize: { xs: '1rem', md: '0.875rem' },
+                touchAction: 'manipulation',
+                WebkitTapHighlightColor: 'transparent',
                 '&:hover': {
                   background: 'linear-gradient(45deg, #FF6B9D 60%, #4ECDC4 100%)',
                   transform: 'translateY(-2px)',
                   boxShadow: '0 8px 25px rgba(255, 107, 157, 0.3)'
-                }
+                },
+                '&:active': {
+                  transform: 'scale(0.98)',
+                },
+                transition: 'all 0.2s ease'
               }}
             >
               {loading ? 'Posting...' : 'Post Message 🎈'}
