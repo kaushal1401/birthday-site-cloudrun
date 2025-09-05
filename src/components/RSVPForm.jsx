@@ -116,7 +116,9 @@ const RSVPForm = ({ onSuccess }) => {
   };
 
   return (
-    <Paper elevation={3} sx={{ p: 4, mb: 4, backgroundColor: 'white' }}>
+    <Box>
+      {/* RSVP Form */}
+      <Paper elevation={3} sx={{ p: 4, mb: 4, backgroundColor: 'white' }}>
       <Typography variant="h4" gutterBottom align="center" color="primary">
         🎉 RSVP for the Birthday Party! 🎂
       </Typography>
@@ -312,7 +314,8 @@ const RSVPForm = ({ onSuccess }) => {
           {error}
         </Alert>
       </Snackbar>
-    </Paper>
+      </Paper>
+    </Box>
   );
 };
 

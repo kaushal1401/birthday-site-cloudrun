@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Birthday Site Deployment Script for Google Cloud Platform
-# This script helps deploy the birthday site to Cloud Run
+# Kashvi's First Birthday Site Deployment Script for Google Cloud Platform
+# This script deploys to Cloud Run with service name: kashvifirstbirthday
 
 set -e
 
@@ -11,6 +11,11 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
+
+# Configuration
+SERVICE_NAME="kashvifirstbirthday"
+REGION="us-central1"
+PLATFORM="managed"
 
 # Function to print colored output
 print_status() {
@@ -38,8 +43,8 @@ check_dependencies() {
         exit 1
     fi
     
-    if ! command -v docker &> /dev/null; then
-        print_error "Docker not found. Please install Docker."
+    if ! command -v npm &> /dev/null; then
+        print_error "npm not found. Please install Node.js."
         exit 1
     fi
     

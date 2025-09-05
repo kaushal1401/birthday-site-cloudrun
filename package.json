@@ -5,6 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
+    "@google-cloud/storage": "^7.17.0",
     "@mui/icons-material": "^5.18.0",
     "@mui/material": "^5.13.0",
     "firebase": "^9.22.0",
@@ -35,5 +36,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "puppeteer": "^24.18.0"
   }
 }

@@ -7,6 +7,7 @@ import {
   Schedule, 
   CalendarToday 
 } from '@mui/icons-material';
+import { messagesService } from '../services/firestoreService';
 
 // Add CSS animations
 const styles = `
@@ -21,6 +22,11 @@ const styles = `
     40% { transform: translateY(-10px); }
     60% { transform: translateY(-5px); }
   }
+  
+  @keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
 `;
 
 // Inject styles
@@ -34,9 +40,10 @@ if (typeof document !== 'undefined') {
 const EventTimer = () => {
   const [birthdayTimeLeft, setBirthdayTimeLeft] = useState(calculateBirthdayTimeLeft());
   const [eventTimeLeft, setEventTimeLeft] = useState(calculateEventTimeLeft());
+  const [recentMessages, setRecentMessages] = useState([]);
 
   function calculateBirthdayTimeLeft() {
-    const birthdayDate = process.env.REACT_APP_BIRTHDAY_DATE || '2025-09-24';
+    const birthdayDate = process.env.REACT_APP_BIRTHDAY_DATE || '2025-10-05';
     const difference = new Date(`${birthdayDate}T00:00:00Z`) - new Date();
     let timeLeft = {};
 
@@ -74,7 +81,26 @@ const EventTimer = () => {
       setEventTimeLeft(calculateEventTimeLeft());
     }, 1000);
 
-    return () => clearInterval(timer);
+    // Load recent messages
+    const loadRecentMessages = async () => {
+      try {
+        const messages = await messagesService.getMessages();
+        // Get the 3 most recent messages
+        setRecentMessages(messages.slice(0, 3));
+      } catch (error) {
+        console.error('Error fetching recent messages:', error);
+      }
+    };
+
+    loadRecentMessages();
+    
+    // Set up polling for recent messages
+    const messageInterval = setInterval(loadRecentMessages, 10000); // Poll every 10 seconds
+
+    return () => {
+      clearInterval(timer);
+      clearInterval(messageInterval);
+    };
   }, []);
 
   return (
@@ -173,24 +199,137 @@ const EventTimer = () => {
                 </Paper>
               ))
             ) : (
-              <Box sx={{ textAlign: 'center', p: 4 }}>
-                <Typography variant="h2" sx={{ 
+              <Box sx={{ textAlign: 'center', p: 6 }}>
+                <Typography variant="h1" sx={{ 
                   background: 'linear-gradient(45deg, #FF6B9D 30%, #FFD700 70%)',
                   backgroundClip: 'text',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   fontWeight: 'bold',
-                  mb: 2,
-                  animation: 'bounce 1s infinite'
+                  mb: 3,
+                  animation: 'bounce 1s infinite',
+                  fontSize: { xs: '2.5rem', md: '4rem' }
                 }}>
                   🎂 IT'S BIRTHDAY TIME! 🎂
                 </Typography>
-                <Typography variant="h4" sx={{ color: '#C44569', mb: 2 }}>
+                
+                <Typography variant="h3" sx={{ 
+                  color: '#C44569', 
+                  mb: 3,
+                  fontWeight: 'bold',
+                  fontSize: { xs: '1.8rem', md: '2.5rem' }
+                }}>
                   👑 Kashvi's Special Day is HERE! 👑
                 </Typography>
-                <Typography variant="h5" sx={{ color: '#FF6B9D' }}>
-                  � Happy 1st Birthday Princess! �
+                
+                <Typography variant="h4" sx={{ 
+                  color: '#FF6B9D', 
+                  mb: 4,
+                  fontSize: { xs: '1.5rem', md: '2rem' }
+                }}>
+                  🌟 Happy 1st Birthday Princess! 🌟
                 </Typography>
+
+                {/* Special Message from Parents */}
+                <Paper elevation={8} sx={{
+                  background: 'linear-gradient(135deg, #FFFFFF 0%, #FFE5F1 50%, #FFF9E7 100%)',
+                  border: '3px solid #FFD700',
+                  borderRadius: 4,
+                  p: 4,
+                  mx: 'auto',
+                  maxWidth: 600,
+                  boxShadow: '0 12px 24px rgba(255, 215, 0, 0.3)',
+                  animation: 'pulse 3s infinite'
+                }}>
+                  <Typography variant="h5" sx={{ 
+                    color: '#C44569', 
+                    mb: 3,
+                    fontWeight: 'bold',
+                    fontSize: { xs: '1.3rem', md: '1.5rem' }
+                  }}>
+                    💝 A Special Message for You 💝
+                  </Typography>
+                  
+                  <Typography variant="h6" sx={{ 
+                    color: '#666',
+                    lineHeight: 1.6,
+                    fontStyle: 'italic',
+                    mb: 3,
+                    fontSize: { xs: '1rem', md: '1.2rem' }
+                  }}>
+                    "Thank you for coming to celebrate our little princess Kashvi's 
+                    first birthday! Your presence makes this day even more special. 
+                    May this beautiful day be filled with joy, laughter, and wonderful 
+                    memories that we'll treasure forever. 🌈✨"
+                  </Typography>
+                  
+                  <Typography variant="h6" sx={{ 
+                    color: '#FF6B9D',
+                    fontWeight: 'bold',
+                    fontSize: { xs: '1.1rem', md: '1.3rem' }
+                  }}>
+                    💕 With Love,<br />
+                    Jyoti & Kaushal 💕
+                  </Typography>
+                </Paper>
+                
+                <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+                  <Typography sx={{ fontSize: '3rem', animation: 'bounce 1s infinite' }}>🎈</Typography>
+                  <Typography sx={{ fontSize: '3rem', animation: 'bounce 1s infinite 0.2s' }}>🎂</Typography>
+                  <Typography sx={{ fontSize: '3rem', animation: 'bounce 1s infinite 0.4s' }}>🎁</Typography>
+                  <Typography sx={{ fontSize: '3rem', animation: 'bounce 1s infinite 0.6s' }}>🎉</Typography>
+                  <Typography sx={{ fontSize: '3rem', animation: 'bounce 1s infinite 0.8s' }}>🌟</Typography>
+                </Box>
+
+                {/* Recent Messages Section */}
+                {recentMessages.length > 0 && (
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="h5" sx={{ 
+                      color: '#FF6B9D', 
+                      mb: 2,
+                      fontWeight: 'bold',
+                      fontSize: { xs: '1.1rem', md: '1.3rem' }
+                    }}>
+                      💌 Recent Messages 💌
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
+                      {recentMessages.map((msg, index) => (
+                        <Paper
+                          key={index}
+                          elevation={4}
+                          sx={{
+                            p: 2,
+                            maxWidth: 200,
+                            background: 'linear-gradient(135deg, #FFF9E7 0%, #FFE5F1 100%)',
+                            border: '2px solid #FFD700',
+                            borderRadius: 3,
+                            textAlign: 'center',
+                            animation: `fadeIn 0.5s ease-in-out ${index * 0.2}s both`
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ 
+                            fontWeight: 'bold', 
+                            color: '#C44569',
+                            fontSize: '0.9rem' 
+                          }}>
+                            {msg.name}
+                          </Typography>
+                          <Typography variant="body2" sx={{ 
+                            color: '#666', 
+                            fontSize: '0.8rem',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical'
+                          }}>
+                            {msg.message}
+                          </Typography>
+                        </Paper>
+                      ))}
+                    </Box>
+                  </Box>
+                )}
               </Box>
             )}
           </Box>
@@ -297,16 +436,72 @@ const EventTimer = () => {
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   fontWeight: 'bold',
-                  mb: 2,
-                  animation: 'bounce 1s infinite'
+                  mb: 3,
+                  animation: 'bounce 1s infinite',
+                  fontSize: { xs: '2.5rem', md: '4rem' }
                 }}>
                   🎉 IT'S PARTY TIME! 🎉
                 </Typography>
-                <Typography variant="h4" sx={{ color: '#4ECDC4', mb: 2 }}>
-                  � Kashvi's Birthday Celebration is NOW! 🎂
+                
+                <Typography variant="h3" sx={{ 
+                  color: '#C44569', 
+                  mb: 3,
+                  fontWeight: 'bold',
+                  fontSize: { xs: '1.8rem', md: '2.5rem' }
+                }}>
+                  🎂 Kashvi's Birthday Celebration is NOW! 🎂
                 </Typography>
-                <Typography variant="h5" sx={{ color: '#FF6B9D' }}>
-                  🎈 Welcome to the Party! Let's Celebrate! �
+
+                {/* Special Message from Parents for Party Day */}
+                <Paper elevation={8} sx={{
+                  background: 'linear-gradient(135deg, #FFFFFF 0%, #FFE5F1 50%, #FFF9E7 100%)',
+                  border: '3px solid #FFD700',
+                  borderRadius: 4,
+                  p: 4,
+                  mx: 'auto',
+                  maxWidth: 600,
+                  mt: 4,
+                  boxShadow: '0 12px 24px rgba(255, 215, 0, 0.3)',
+                  animation: 'pulse 3s infinite'
+                }}>
+                  <Typography variant="h5" sx={{ 
+                    color: '#C44569', 
+                    mb: 3,
+                    fontWeight: 'bold',
+                    fontSize: { xs: '1.3rem', md: '1.5rem' }
+                  }}>
+                    � Thank You for Joining Us! 🎊
+                  </Typography>
+                  
+                  <Typography variant="h6" sx={{ 
+                    color: '#666',
+                    lineHeight: 1.6,
+                    fontStyle: 'italic',
+                    mb: 3,
+                    fontSize: { xs: '1rem', md: '1.2rem' }
+                  }}>
+                    "Welcome to Kashvi's 1st Birthday Celebration! Thank you for being here 
+                    to make this special day even more memorable. Let's celebrate our little 
+                    princess together with joy, laughter, and lots of fun! Your presence is 
+                    the best gift we could ask for. 🌟✨"
+                  </Typography>
+                  
+                  <Typography variant="h6" sx={{ 
+                    color: '#FF6B9D',
+                    fontWeight: 'bold',
+                    fontSize: { xs: '1.1rem', md: '1.3rem' }
+                  }}>
+                    💕 With Love & Gratitude,<br />
+                    Jyoti & Kaushal 💕
+                  </Typography>
+                </Paper>
+                
+                <Typography variant="h5" sx={{ 
+                  color: '#4ECDC4', 
+                  mt: 4,
+                  fontSize: { xs: '1.3rem', md: '1.5rem' }
+                }}>
+                  🎈 Let's Celebrate Together! 🎈
                 </Typography>
               </Box>
             )}

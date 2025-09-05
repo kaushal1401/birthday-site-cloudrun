@@ -71,7 +71,7 @@ const GuestMessageWall = ({ onNewMessage }) => {
       
       // Call the callback to show message on home page
       if (onNewMessage) {
-        onNewMessage(messageData);
+        onNewMessage(`New message from ${messageData.name}! 💌`, 'success');
       }
       
       // Refresh messages
@@ -244,7 +244,7 @@ const GuestMessageWall = ({ onNewMessage }) => {
                           {message.name}
                         </Typography>
                         <Chip 
-                          label={message.guestType === 'child' ? '👶 Child' : '👤 Adult'} 
+                          label={message.guestType === 'child' ? '👶 Child' : ''} 
                           size="small" 
                           sx={{
                             backgroundColor: message.guestType === 'child' ? '#4ECDC4' : '#FF6B9D',
@@ -254,7 +254,7 @@ const GuestMessageWall = ({ onNewMessage }) => {
                         />
                       </Box>
                       <Typography variant="caption" color="text.secondary">
-                        {formatTimestamp(message.timestamp)}
+                        {formatTimestamp(message.createdAt)}
                       </Typography>
                     </Box>
                   </Box>

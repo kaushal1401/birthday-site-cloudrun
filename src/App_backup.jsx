@@ -7,6 +7,7 @@ import {
   Typography, 
   Container,
   Grid,
+  Paper,
   Fade,
   Alert,
   Snackbar,
@@ -16,8 +17,7 @@ import {
   DialogContent,
   IconButton,
   TextField,
-  Button,
-  Link
+  Button
 } from '@mui/material';
 import { 
   Close as CloseIcon, 
@@ -28,7 +28,6 @@ import ButterflyAnimation from './components/ButterflyAnimation';
 import EventTimer from './components/EventTimer';
 import RSVPForm from './components/RSVPForm';
 import GuestMessageWall from './components/GuestMessageWall';
-import LatestWishes from './components/LatestWishes';
 import AdminDashboard from './components/AdminDashboard';
 import BabyJourney from './components/BabyJourney';
 import BestPhotos from './components/BestPhotos';
@@ -178,61 +177,13 @@ function App() {
                 </Typography>
               </Box>
             </Fade>
+
+            <EventTimer />
           </Box>
 
-          {/* Latest Birthday Wishes Section */}
-          <Fade in timeout={2500}>
-            <Box sx={{ 
-              mt: 4, 
-              mb: 4, 
-              p: 2, 
-              background: 'linear-gradient(135deg, #FFE5F1 0%, #F0F8FF 100%)',
-              borderRadius: 4,
-              boxShadow: '0 8px 32px rgba(255, 107, 157, 0.2)',
-              border: '2px solid rgba(255, 107, 157, 0.1)'
-            }}>
-              <Typography 
-                variant="h2" 
-                component="h2" 
-                textAlign="center" 
-                sx={{ 
-                  mb: 2,
-                  fontFamily: '"Fredoka One", cursive',
-                  background: 'linear-gradient(45deg, #FF6B9D, #4FC3F7, #FFD700)',
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  fontSize: { xs: '1.5rem', md: '2rem' }
-                }}
-              >
-                🌟 Latest Birthday Wishes 🌟
-              </Typography>
-              <Typography 
-                variant="h6" 
-                textAlign="center" 
-                sx={{ 
-                  mb: 2, 
-                  color: '#666',
-                  fontFamily: '"Comic Neue", cursive',
-                  fontSize: { xs: '0.9rem', md: '1rem' }
-                }}
-              >
-                See the love and warm wishes pouring in for our little princess! 💖
-              </Typography>
-              <LatestWishes />
-            </Box>
-          </Fade>
-
-          {/* Main Content Layout */}
-          <Grid container spacing={4} sx={{ mt: 4 }} justifyContent="center">
-            {/* Centered Content - Countdown and Messages */}
+          {/* Main Content Sections */}
+          <Grid container spacing={4} justifyContent="center">
             <Grid item xs={12} md={8}>
-              {/* Birthday Countdown */}
-              <Box sx={{ mb: 4 }}>
-                <EventTimer />
-              </Box>
-
-              {/* Guest Messages Section */}
               <Fade in timeout={3000}>
                 <Typography variant="h3" textAlign="center" sx={{ 
                   mb: 4, 
@@ -246,12 +197,12 @@ function App() {
             </Grid>
           </Grid>
 
-          {/* Kashvi Journey Section */}
+          {/* Baby Journey Section */}
           <Box sx={{ mt: 8 }}>
             <BabyJourney />
           </Box>
 
-          {/* Best Moments Section */}
+          {/* Best Photos Section */}
           <Box sx={{ mt: 8 }}>
             <BestPhotos />
           </Box>
@@ -259,179 +210,52 @@ function App() {
           {/* Footer */}
           <Box sx={{ 
             mt: 8, 
-            py: 2, 
+            py: 4, 
             textAlign: 'center',
-            background: 'rgba(255, 255, 255, 0.8)',
-            borderTop: '1px solid rgba(255, 107, 157, 0.2)',
-            borderRadius: '10px'
+            borderTop: '2px solid rgba(255, 107, 157, 0.2)',
+            background: 'rgba(255, 255, 255, 0.7)'
           }}>
-            <Typography variant="body2" sx={{ color: '#666', fontSize: '0.9rem' }}>
+            <Typography variant="body2" color="text.secondary">
               © 2025 Kashvi's Birthday Celebration. All rights reserved.
             </Typography>
-            <Typography variant="body2" sx={{ mt: 1, color: '#666', fontSize: '0.9rem' }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
               Made with 💖 for our precious little one
-            </Typography>
-            <Typography variant="body2" sx={{ mt: 1, fontSize: '0.8rem', color: '#888', fontWeight: 'bold' }}>
-              Website powered by{' '}
-              <Link 
-                href="https://www.linkedin.com/in/kaushal-singh14" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                sx={{ 
-                  color: '#666', 
-                  textDecoration: 'none',
-                  fontSize: '0.8rem',
-                  fontWeight: 'bold',
-                  '&:hover': { textDecoration: 'underline' }
-                }}
-              >
-                Kaushal
-              </Link>
             </Typography>
           </Box>
         </Container>
 
         {/* Floating Action Buttons */}
-        {/* RSVP FAB - Left side with text */}
-        <Box sx={{ 
-          position: 'fixed', 
-          bottom: 20, 
-          left: 20, 
-          zIndex: 1000,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1
-        }}>
-          <Fab 
-            variant="extended"
-            color="primary" 
-            sx={{ 
-              background: 'linear-gradient(45deg, #FF6B9D 30%, #4FC3F7 90%)',
-              color: 'white',
-              fontWeight: 'bold',
-              px: 3,
-              '&:hover': {
-                background: 'linear-gradient(45deg, #FF6B9D 60%, #4FC3F7 100%)',
-                transform: 'scale(1.05)',
-              },
-              transition: 'all 0.3s ease'
-            }}
-            onClick={() => setRsvpOpen(true)}
-          >
-            <RSVPIcon sx={{ mr: 1 }} />
-            RSVP
-          </Fab>
-        </Box>
+        <Fab 
+          color="primary" 
+          sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1000 }}
+          onClick={() => setRsvpOpen(true)}
+        >
+          <RSVPIcon />
+        </Fab>
 
-        {/* Admin FAB - Right side */}
         <Fab 
           color="secondary" 
-          sx={{ 
-            position: 'fixed', 
-            bottom: 20, 
-            right: 20, 
-            zIndex: 1000,
-            background: 'linear-gradient(45deg, #9C27B0 30%, #673AB7 90%)',
-            '&:hover': {
-              background: 'linear-gradient(45deg, #9C27B0 60%, #673AB7 100%)',
-              transform: 'scale(1.05)',
-            },
-            transition: 'all 0.3s ease'
-          }}
+          sx={{ position: 'fixed', bottom: 16, left: 16, zIndex: 1000 }}
           onClick={() => setAdminOpen(true)}
         >
           <AdminIcon />
         </Fab>
 
-        {/* RSVP Dialog with Enhanced Styling */}
-        <Dialog 
-          open={rsvpOpen} 
-          onClose={() => setRsvpOpen(false)} 
-          maxWidth="md" 
-          fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: 6,
-              background: 'linear-gradient(135deg, #FFF8F0 0%, #FFE5F1 50%, #E8F8F5 100%)',
-              border: '4px solid #FF6B9D',
-              boxShadow: '0 20px 40px rgba(255, 107, 157, 0.3)',
-              overflow: 'hidden'
-            }
-          }}
-        >
+        {/* RSVP Dialog */}
+        <Dialog open={rsvpOpen} onClose={() => setRsvpOpen(false)} maxWidth="md" fullWidth>
           <DialogTitle sx={{ 
             display: 'flex', 
             justifyContent: 'space-between', 
             alignItems: 'center',
-            background: 'linear-gradient(45deg, #FF6B9D 30%, #4FC3F7 60%, #FFD700 90%)',
-            color: 'white',
-            fontFamily: '"Comic Sans MS", cursive, sans-serif',
-            fontSize: '2.2rem',
-            fontWeight: 'bold',
-            textShadow: '3px 3px 6px rgba(0,0,0,0.4)',
-            py: 3,
-            position: 'relative',
-            '&::before': {
-              content: '"🎉 🎈 🎂 🎁 🎊"',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              fontSize: '1rem',
-              opacity: 0.1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              pointerEvents: 'none'
-            }
+            background: 'linear-gradient(45deg, #FF6B9D 30%, #4FC3F7 90%)',
+            color: 'white'
           }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              🎂 Join Kashvi's Birthday Party! 🎂
-            </Box>
-            <IconButton 
-              onClick={() => setRsvpOpen(false)} 
-              sx={{ 
-                color: 'white',
-                background: 'rgba(255,255,255,0.2)',
-                '&:hover': {
-                  background: 'rgba(255,255,255,0.3)',
-                  transform: 'rotate(90deg)'
-                },
-                transition: 'all 0.3s ease'
-              }}
-            >
+            🎂 RSVP for Kashvi's Birthday Party! 🎂
+            <IconButton onClick={() => setRsvpOpen(false)} sx={{ color: 'white' }}>
               <CloseIcon />
             </IconButton>
           </DialogTitle>
-          <DialogContent sx={{ 
-            mt: 2, 
-            px: 4, 
-            pb: 4,
-            background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF9E7 50%, #FFE5F1 100%)'
-          }}>
-            <Box sx={{ 
-              textAlign: 'center', 
-              mb: 3,
-              p: 2,
-              background: 'linear-gradient(45deg, rgba(255, 107, 157, 0.1) 30%, rgba(79, 195, 247, 0.1) 90%)',
-              borderRadius: 3,
-              border: '2px dashed #FF6B9D'
-            }}>
-              <Typography variant="h6" sx={{ 
-                color: '#C44569',
-                fontWeight: 'bold',
-                mb: 1
-              }}>
-                We can't wait to celebrate with you! 🌟
-              </Typography>
-              <Typography variant="body1" sx={{ 
-                color: '#666',
-                fontStyle: 'italic'
-              }}>
-                Please let us know if you'll be joining our little princess's big day
-              </Typography>
-            </Box>
+          <DialogContent sx={{ mt: 2 }}>
             <RSVPForm 
               onSuccess={(message) => {
                 setRsvpOpen(false);

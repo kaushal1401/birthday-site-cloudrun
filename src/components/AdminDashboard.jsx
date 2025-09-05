@@ -322,7 +322,7 @@ const AdminDashboard = () => {
                   <TableCell sx={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {message.message}
                   </TableCell>
-                  <TableCell>{formatTimestamp(message.timestamp)}</TableCell>
+                  <TableCell>{formatTimestamp(message.createdAt)}</TableCell>
                   <TableCell>
                     <IconButton 
                       color="error" 

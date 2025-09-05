@@ -12,33 +12,9 @@ import {
 import { db, isDemoMode } from '../firebase';
 
 // Demo data for when Firebase credentials are not available
-const demoRSVPs = [
-  {
-    id: 'demo-1',
-    name: 'Demo Family',
-    email: 'demo@example.com',
-    phone: '+1-234-567-8900',
-    adults: 2,
-    children: [{ name: 'Child 1', age: 6 }, { name: 'Child 2', age: 8 }],
-    message: 'Excited to celebrate with you!',
-    createdAt: new Date()
-  }
-];
+const demoRSVPs = [];
 
-const demoMessages = [
-  {
-    id: 'demo-msg-1',
-    name: 'Demo Grandparents',
-    message: 'Happy Birthday! We love you so much!',
-    createdAt: new Date()
-  },
-  {
-    id: 'demo-msg-2',
-    name: 'Demo Aunty',
-    message: 'Wishing you joy and happiness on your special day!',
-    createdAt: new Date()
-  }
-];
+const demoMessages = [];
 
 // RSVP Service
 export const rsvpService = {
@@ -148,7 +124,11 @@ export const messagesService = {
         ...messageData,
         createdAt: serverTimestamp()
       });
-      return { id: docRef.id, ...messageData };
+      return { 
+        id: docRef.id, 
+        ...messageData, 
+        createdAt: new Date() // Return current date for immediate display
+      };
     } catch (error) {
       console.error('Error creating message:', error);
       throw error;
