@@ -280,15 +280,20 @@ export const togglePhotoLike = async (photoUrl, userId = 'anonymous') => {
     // Use photoUrl as the document ID (encode it safely)
     const photoId = btoa(photoUrl).replace(/[^a-zA-Z0-9]/g, '');
     const photoDocRef = doc(db, 'photoLikes', photoId);
-    const photoDoc = await getDoc(photoDocRef);
     
-    console.log(`Attempting to like photo: ${photoUrl}`);
-    console.log(`Document ID: ${photoId}`);
-    console.log(`Firestore available: ${!!db}`);
+    console.log('🔥 Firebase Like Operation:', {
+      photoUrl,
+      photoId,
+      dbAvailable: !!db,
+      userId
+    });
+    
+    const photoDoc = await getDoc(photoDocRef);
+    console.log('📄 Document exists:', photoDoc.exists());
     
     if (!photoDoc.exists()) {
       // Create new photo likes document with heart emoji
-      await setDoc(photoDocRef, {
+      const newDocData = {
         photoUrl,
         photoId,
         likes: [userId],
@@ -296,38 +301,71 @@ export const togglePhotoLike = async (photoUrl, userId = 'anonymous') => {
         heartEmoji: '❤️',
         lastUpdated: new Date().toISOString(),
         createdAt: new Date().toISOString()
-      });
-      console.log(`❤️ New like added for photo: ${photoUrl}`);
-      return 1; // Return just the count
+      };
+      
+      console.log('📝 Creating new document:', newDocData);
+      await setDoc(photoDocRef, newDocData);
+      console.log('✅ New like added for photo:', photoUrl);
+      return 1;
     } else {
       const data = photoDoc.data();
+      console.log('📊 Existing document data:', data);
+      
       const currentLikes = data.likes || [];
       const isLiked = currentLikes.includes(userId);
       
       if (isLiked) {
         // Already liked - don't allow unlikes, just return current count
-        console.log(`❤️ Photo already liked: ${photoUrl}`);
+        console.log('💖 Photo already liked by user:', userId);
         return data.totalLikes || 1;
       } else {
         // Add like
         const newCount = (data.totalLikes || 0) + 1;
-        await updateDoc(photoDocRef, {
+        const updateData = {
           likes: arrayUnion(userId),
           totalLikes: newCount,
-          heartEmoji: '❤️', // Heart when adding like
+          heartEmoji: '❤️',
           lastUpdated: new Date().toISOString()
-        });
-        console.log(`❤️ Like added for photo: ${photoUrl} (Total: ${newCount})`);
+        };
+        
+        console.log('🔄 Updating document with:', updateData);
+        await updateDoc(photoDocRef, updateData);
+        console.log(`✅ Like added! New count: ${newCount}`);
         return newCount;
       }
     }
   } catch (error) {
-    console.error('Error toggling like:', error);
+    console.error('❌ Error toggling like:', error);
+    console.error('Error details:', {
+      code: error.code,
+      message: error.message,
+      stack: error.stack
+    });
     
     // Handle specific Firebase errors gracefully
     if (error.code === 'cancelled') {
       console.warn('⚠️ Firebase operation cancelled - returning default count');
-      return 1; // Return default count instead of failing
+      return 1;
+    }
+    
+    if (error.code === 'permission-denied') {
+      console.error('🚫 Permission denied - check Firestore rules');
+      return 0;
+    }
+    
+    if (error.code === 'unavailable') {
+      console.error('🌐 Firebase unavailable - network issues');
+      return 0;
+    }
+    
+    if (error.message && error.message.includes('timeout')) {
+      console.error('⏰ Firebase operation timeout');
+      return 0;
+    }
+    
+    // For any other error, return 0 to prevent UI breaking
+    console.warn('⚠️ Unknown error in like function, returning 0');
+    return 0;
     }
     
     if (error.code === 'permission-denied') {
@@ -362,21 +400,32 @@ export const getPhotoLikes = async (photoUrl, userId = 'anonymous') => {
 
     const photoId = btoa(photoUrl).replace(/[^a-zA-Z0-9]/g, '');
     const photoDocRef = doc(db, 'photoLikes', photoId);
+    
+    console.log('🔍 Getting likes for photo:', {
+      photoUrl,
+      photoId,
+      userId
+    });
+    
     const photoDoc = await getDoc(photoDocRef);
     
     if (!photoDoc.exists()) {
+      console.log('📄 No likes document found for photo');
       return { liked: false, totalLikes: 0, heartEmoji: '🤍' };
     }
     
     const data = photoDoc.data();
     const likes = data.likes || [];
-    return {
+    const result = {
       liked: likes.includes(userId),
       totalLikes: data.totalLikes || 0,
       heartEmoji: data.heartEmoji || '❤️'
     };
+    
+    console.log('📊 Likes data retrieved:', result);
+    return result;
   } catch (error) {
-    console.error('Error getting photo likes:', error);
+    console.error('❌ Error getting photo likes:', error);
     return { liked: false, totalLikes: 0, heartEmoji: '🤍' };
   }
 };

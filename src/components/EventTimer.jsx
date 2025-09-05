@@ -146,21 +146,50 @@ const EventTimer = () => {
             <Typography sx={{ fontSize: '3rem' }}>🎈🎂</Typography>
           </Box>
           
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, mb: 3 }}>
-            <Typography sx={{ fontSize: '2rem' }}>👑</Typography>
-            <Chip 
-              label="Kashvi's 1st Birthday - September 24th, 2025" 
-              sx={{ 
-                background: 'linear-gradient(45deg, #FF6B9D 30%, #C44569 90%)',
-                color: 'white',
-                fontSize: '1.1rem',
-                fontWeight: 'bold',
-                px: 2,
-                py: 1,
-                '& .MuiChip-label': { px: 2 }
-              }} 
-            />
-            <Typography sx={{ fontSize: '2rem' }}>👑</Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, mb: 3, flexWrap: 'wrap' }}>
+            <Typography sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>👑</Typography>
+            <Box sx={{ textAlign: 'center' }}>
+              <Chip 
+                label="Kashvi's 1st Birthday" 
+                sx={{ 
+                  background: 'linear-gradient(45deg, #FF6B9D 30%, #C44569 90%)',
+                  color: 'white',
+                  fontSize: { xs: '0.9rem', sm: '1.1rem' },
+                  fontWeight: 'bold',
+                  px: { xs: 1, sm: 2 },
+                  py: 1,
+                  mb: { xs: 1, sm: 0 },
+                  '& .MuiChip-label': { px: { xs: 1, sm: 2 } }
+                }} 
+              />
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: '#FF6B9D',
+                  fontWeight: 'bold',
+                  fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                  mt: 0.5,
+                  display: { xs: 'block', sm: 'none' } // Show date separately on mobile
+                }}
+              >
+                September 24th, 2025
+              </Typography>
+              <Chip 
+                label="September 24th, 2025" 
+                sx={{ 
+                  background: 'linear-gradient(45deg, #C44569 30%, #FF6B9D 90%)',
+                  color: 'white',
+                  fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                  fontWeight: 'bold',
+                  px: { xs: 1, sm: 2 },
+                  py: 0.5,
+                  mt: { xs: 0.5, sm: 0 },
+                  display: { xs: 'none', sm: 'inline-flex' }, // Hide on mobile, show on desktop
+                  '& .MuiChip-label': { px: { xs: 1, sm: 2 } }
+                }} 
+              />
+            </Box>
+            <Typography sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>👑</Typography>
           </Box>
           
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>

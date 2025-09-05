@@ -59,12 +59,12 @@ const BestPhotos = () => {
               photos: [
                 {
                   id: `${category.key}_placeholder_1`,
-                  url: `https://via.placeholder.com/500x400/F0F8FF/667eea?text=${encodeURIComponent(`📸 ${category.name} Photo 1`)}`,
+                  url: `https://via.placeholder.com/500x400/F0F8FF/667eea?text=${encodeURIComponent(`📸 ${category.name}`)}`,
                   isPlaceholder: true
                 },
                 {
                   id: `${category.key}_placeholder_2`,
-                  url: `https://via.placeholder.com/500x400/F0F8FF/667eea?text=${encodeURIComponent(`📸 ${category.name} Photo 2`)}`,
+                  url: `https://via.placeholder.com/500x400/F0F8FF/667eea?text=${encodeURIComponent(`📸 ${category.name}`)}`,
                   isPlaceholder: true
                 }
               ],
@@ -125,14 +125,20 @@ const BestPhotos = () => {
       event.stopPropagation();
     }
     
+    console.log('💖 Like button clicked for photo:', photoUrl);
+    
     try {
       const newLikeCount = await togglePhotoLike(photoUrl);
+      console.log('📈 New like count received:', newLikeCount);
+      
       setLikes(prev => ({
         ...prev,
         [photoUrl]: newLikeCount
       }));
+      
+      console.log('✅ Likes state updated successfully');
     } catch (error) {
-      console.error('Error toggling like:', error);
+      console.error('❌ Error toggling like:', error);
     }
   };
 
@@ -162,12 +168,12 @@ const BestPhotos = () => {
               photos: [
                 {
                   id: `${category.key}_placeholder_1`,
-                  url: `https://via.placeholder.com/500x400/F0F8FF/667eea?text=${encodeURIComponent(`📸 ${category.name} Photo 1`)}`,
+                  url: `https://via.placeholder.com/500x400/F0F8FF/667eea?text=${encodeURIComponent(`📸 ${category.name}`)}`,
                   isPlaceholder: true
                 },
                 {
                   id: `${category.key}_placeholder_2`,
-                  url: `https://via.placeholder.com/500x400/F0F8FF/667eea?text=${encodeURIComponent(`📸 ${category.name} Photo 2`)}`,
+                  url: `https://via.placeholder.com/500x400/F0F8FF/667eea?text=${encodeURIComponent(`📸 ${category.name}`)}`,
                   isPlaceholder: true
                 }
               ],
@@ -479,11 +485,13 @@ const BestPhotos = () => {
                         <CardMedia
                           component="img"
                           image={photo.url}
-                          alt={`${currentCategory.name} - Photo ${photoIndex + 1}`}
+                          alt={`${currentCategory.name} memory`}
                           sx={{
-                            height: 320,
+                            height: { xs: 280, sm: 350, md: 400 }, // Responsive height
+                            width: '100%',
                             objectFit: 'cover',
-                            filter: photo.isPlaceholder ? 'none' : 'brightness(1.1) contrast(1.05)',
+                            objectPosition: 'center',
+                            filter: photo.isPlaceholder ? 'none' : 'brightness(1.05) contrast(1.02)',
                             opacity: photo.isPlaceholder ? 0.8 : 1,
                           }}
                         />

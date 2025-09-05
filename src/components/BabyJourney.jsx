@@ -132,14 +132,20 @@ const BabyJourney = () => {
       event.stopPropagation();
     }
     
+    console.log('💖 Like button clicked for photo:', photoUrl);
+    
     try {
       const newLikeCount = await togglePhotoLike(photoUrl);
+      console.log('📈 New like count received:', newLikeCount);
+      
       setLikes(prev => ({
         ...prev,
         [photoUrl]: newLikeCount
       }));
+      
+      console.log('✅ Likes state updated successfully');
     } catch (error) {
-      console.error('Error toggling like:', error);
+      console.error('❌ Error toggling like:', error);
     }
   };
 
@@ -402,31 +408,17 @@ const BabyJourney = () => {
                         }
                       }}
                     >
-                      {/* Photo Number Badge */}
-                      <Chip
-                        label={`Photo ${photoIndex + 1}`}
-                        sx={{
-                          position: 'absolute',
-                          top: 16,
-                          left: 16,
-                          zIndex: 1,
-                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                          color: '#ff6b9d',
-                          fontWeight: 700,
-                          fontFamily: '"Poppins", sans-serif',
-                          fontSize: '0.9rem'
-                        }}
-                      />
-
-                      {/* Photo */}
+                      {/* Photo - removed photo number badge for cleaner look */}
                       <CardMedia
                         component="img"
                         image={photo.url}
-                        alt={`${currentMonth.name} - Photo ${photoIndex + 1}`}
+                        alt={`${currentMonth.name} memory`}
                         sx={{
-                          height: 320,
+                          height: { xs: 280, sm: 350, md: 400 }, // Responsive height
+                          width: '100%',
                           objectFit: 'cover',
-                          filter: photo.isPlaceholder ? 'none' : 'brightness(1.1) contrast(1.05)',
+                          objectPosition: 'center',
+                          filter: photo.isPlaceholder ? 'none' : 'brightness(1.05) contrast(1.02)',
                           opacity: photo.isPlaceholder ? 0.8 : 1,
                         }}
                       />
