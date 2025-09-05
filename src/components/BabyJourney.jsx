@@ -10,7 +10,6 @@ import {
   Tabs,
   Tab,
   Paper,
-  Chip,
   Grid,
   Fade
 } from '@mui/material';
@@ -23,7 +22,7 @@ import {
 } from '@mui/icons-material';
 import { getPhotos, togglePhotoLike, getPhotoLikes } from '../services/photoService';
 import { GCS_CONFIG } from '../config/gcsConfig';
-import { runFirebaseTest } from '../utils/firebaseTest';
+import PhotoViewer from './PhotoViewer';
 
 const BabyJourney = () => {
   const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
@@ -31,6 +30,8 @@ const BabyJourney = () => {
   const [loading, setLoading] = useState(true);
   const [likes, setLikes] = useState({});
   const [error, setError] = useState(null);
+  const [photoViewerOpen, setPhotoViewerOpen] = useState(false);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
 
   // Memoize months to prevent useEffect re-running
   const months = useMemo(() => 
@@ -82,7 +83,7 @@ const BabyJourney = () => {
         
         setMonthsData(monthsWithPhotos);
         
-        // Load likes data for all photos
+        // Load likes data for all photos (including placeholders)
         const allPhotoUrls = monthsWithPhotos.flatMap(month => 
           month.photos.map(photo => photo.url)
         );
@@ -90,14 +91,13 @@ const BabyJourney = () => {
         const likesData = {};
         await Promise.all(
           allPhotoUrls.map(async (photoUrl) => {
-            if (!photoUrl.includes('placeholder')) {
-              try {
-                const photoLikes = await getPhotoLikes(photoUrl);
-                likesData[photoUrl] = photoLikes.totalLikes;
-              } catch (error) {
-                console.log(`Error loading likes for ${photoUrl}:`, error);
-                likesData[photoUrl] = 0;
-              }
+            try {
+              const photoLikes = await getPhotoLikes(photoUrl);
+              likesData[photoUrl] = photoLikes.totalLikes;
+            } catch (error) {
+              console.log(`Error loading likes for ${photoUrl}:`, error);
+              // Initialize with 0 for all photos, including placeholders
+              likesData[photoUrl] = 0;
             }
           })
         );
@@ -113,7 +113,7 @@ const BabyJourney = () => {
     };
 
     loadAllMonthsData();
-  }, []); // Remove months dependency to prevent infinite loop
+  }, [months]); // Add months dependency
 
   const handleTabChange = (event, newValue) => {
     setCurrentMonthIndex(newValue);
@@ -134,6 +134,11 @@ const BabyJourney = () => {
     
     console.log('💖 Like button clicked for photo:', photoUrl);
     
+    // Check if this is a placeholder photo
+    if (photoUrl.includes('placeholder') || photoUrl.includes('via.placeholder.com')) {
+      console.log('📸 This is a placeholder photo - likes are allowed');
+    }
+    
     try {
       const newLikeCount = await togglePhotoLike(photoUrl);
       console.log('📈 New like count received:', newLikeCount);
@@ -146,7 +151,25 @@ const BabyJourney = () => {
       console.log('✅ Likes state updated successfully');
     } catch (error) {
       console.error('❌ Error toggling like:', error);
+      // Set a default like count if there's an error
+      setLikes(prev => ({
+        ...prev,
+        [photoUrl]: (prev[photoUrl] || 0) + 1
+      }));
     }
+  };
+
+  const handlePhotoClick = (photoIndex) => {
+    setSelectedPhotoIndex(photoIndex);
+    setPhotoViewerOpen(true);
+  };
+
+  const handlePhotoViewerNavigate = (newIndex) => {
+    setSelectedPhotoIndex(newIndex);
+  };
+
+  const handlePhotoViewerClose = () => {
+    setPhotoViewerOpen(false);
   };
 
   if (loading) {
@@ -395,6 +418,7 @@ const BabyJourney = () => {
                   <Fade in={true} timeout={500 + photoIndex * 200}>
                     <Card
                       elevation={8}
+                      onClick={() => handlePhotoClick(photoIndex)}
                       sx={{
                         borderRadius: 3,
                         overflow: 'hidden',
@@ -416,8 +440,9 @@ const BabyJourney = () => {
                         sx={{
                           height: { xs: 280, sm: 350, md: 400 }, // Responsive height
                           width: '100%',
-                          objectFit: 'cover',
+                          objectFit: 'contain', // Changed from 'cover' to 'contain' to show full photo
                           objectPosition: 'center',
+                          backgroundColor: '#f5f5f5', // Add background color for letterboxing
                           filter: photo.isPlaceholder ? 'none' : 'brightness(1.05) contrast(1.02)',
                           opacity: photo.isPlaceholder ? 0.8 : 1,
                         }}
@@ -479,16 +504,6 @@ const BabyJourney = () => {
                           color: 'white'
                         }}
                       >
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            fontFamily: '"Poppins", sans-serif',
-                            fontWeight: 600
-                          }}
-                        >
-                          {currentMonth.name}
-                        </Typography>
-                        
                         <Box display="flex" alignItems="center" gap={1}>
                           <IconButton
                             size="small"
@@ -513,7 +528,7 @@ const BabyJourney = () => {
                             aria-label={`Like photo from ${currentMonth.name}`}
                           >
                             {likes[photo.url] > 0 ? (
-                              <Favorite sx={{ color: '#ff6b9d' }} />
+                              <Favorite sx={{ color: '#e91e63' }} />
                             ) : (
                               <FavoriteBorder />
                             )}
@@ -562,6 +577,19 @@ const BabyJourney = () => {
             </Box>
           </Box>
         </Paper>
+      )}
+
+      {/* Photo Viewer Modal */}
+      {currentMonth && currentMonth.photos && (
+        <PhotoViewer
+          open={photoViewerOpen}
+          onClose={handlePhotoViewerClose}
+          photos={currentMonth.photos}
+          currentIndex={selectedPhotoIndex}
+          onNavigate={handlePhotoViewerNavigate}
+          likes={likes}
+          onLike={handleLike}
+        />
       )}
     </Container>
   );

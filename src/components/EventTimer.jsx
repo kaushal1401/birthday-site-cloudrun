@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Paper, Chip, Card, CardContent, Grid } from '@mui/material';
 import { 
-  CakeOutlined, 
-  CelebrationOutlined, 
   LocationOn, 
-  Schedule, 
-  CalendarToday 
+  Schedule
 } from '@mui/icons-material';
 import { messagesService } from '../services/firestoreService';
 import { eventDetails } from '../firebase';
@@ -167,9 +164,13 @@ const EventTimer = () => {
                 sx={{ 
                   color: '#FF6B9D',
                   fontWeight: 'bold',
-                  fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                  fontSize: { xs: '0.9rem', sm: '0.9rem' },
                   mt: 0.5,
-                  display: { xs: 'block', sm: 'none' } // Show date separately on mobile
+                  display: { xs: 'block', sm: 'none' }, // Show date separately on mobile
+                  lineHeight: 1.2,
+                  textAlign: 'center',
+                  wordBreak: 'keep-all',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 September 24th, 2025

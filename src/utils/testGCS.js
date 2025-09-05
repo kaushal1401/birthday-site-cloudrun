@@ -1,5 +1,5 @@
 // Test GCS connectivity and bucket status
-import { GCS_CONFIG, generatePhotoUrl } from '../config/gcsConfig';
+import { GCS_CONFIG } from '../config/gcsConfig';
 
 // Test if a photo URL is accessible
 export const testPhotoUrl = async (url) => {

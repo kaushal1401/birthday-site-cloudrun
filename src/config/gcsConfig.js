@@ -42,12 +42,7 @@ export const GCS_CONFIG = {
     bestPhotos: {
       path: 'best-photos',
       categories: [
-        { key: 'precious_smiles', name: 'Precious Smiles', emoji: '😊' },
-        { key: 'first_steps', name: 'First Steps', emoji: '👶' },
-        { key: 'family_moments', name: 'Family Moments', emoji: '👨‍👩‍👧' },
-        { key: 'milestone_celebrations', name: 'Milestone Celebrations', emoji: '🎉' },
-        { key: 'adorable_poses', name: 'Adorable Poses', emoji: '📸' },
-        { key: 'sweet_dreams', name: 'Sweet Dreams', emoji: '😴' }
+        { key: 'family_moments', name: 'Family Moments', emoji: '👨‍👩‍👧' }
       ]
     }
   }

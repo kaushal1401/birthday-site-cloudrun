@@ -3,7 +3,49 @@ import { doc, setDoc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebase';
 import { GCS_CONFIG, generatePhotoUrl } from '../config/gcsConfig';
 
-// Photo categories and months configuration
+// Test Firebase connectivity
+export const testFirebaseConnection = async () => {
+  try {
+    console.log('🧪 Testing Firebase connection...');
+    
+    if (!db) {
+      console.error('❌ Firestore database not initialized');
+      return false;
+    }
+    
+    // Try to create a test document
+    const testDocRef = doc(db, 'photoLikes', 'test_connection');
+    const testData = {
+      test: true,
+      timestamp: new Date().toISOString(),
+      message: 'Connection test successful'
+    };
+    
+    console.log('📝 Writing test document...');
+    await setDoc(testDocRef, testData);
+    console.log('✅ Test document written successfully');
+    
+    console.log('📖 Reading test document...');
+    const testDoc = await getDoc(testDocRef);
+    if (testDoc.exists()) {
+      console.log('✅ Test document read successfully:', testDoc.data());
+      return true;
+    } else {
+      console.error('❌ Test document not found after write');
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Firebase connection test failed:', error);
+    console.error('Error details:', {
+      code: error.code,
+      message: error.message,
+      name: error.name
+    });
+    return false;
+  }
+};
+
+// Export photo categories and months configuration
 export const PHOTO_CATEGORIES = {
   babyJourney: {
     months: [
@@ -13,12 +55,7 @@ export const PHOTO_CATEGORIES = {
   },
   bestPhotos: {
     categories: [
-      { name: 'Precious Smiles', emoji: '😊' },
-      { name: 'First Steps', emoji: '👶' },
-      { name: 'Family Moments', emoji: '👨‍👩‍👧' },
-      { name: 'Milestone Celebrations', emoji: '🎉' },
-      { name: 'Adorable Poses', emoji: '📸' },
-      { name: 'Sweet Dreams', emoji: '😴' }
+      { name: 'Family Moments', emoji: '👨‍👩‍👧' }
     ]
   }
 };
@@ -52,6 +89,9 @@ export const getPhotos = async (category, subcategory = null) => {
   try {
     console.log(`Loading photos for ${category}/${subcategory}`);
     
+    // Determine expected number of photos
+    const expectedPhotos = category === 'bestPhotos' ? 6 : 2;
+    
     // Generate photos based on GCS structure
     const photos = await generateGCSPhotos(category, subcategory);
     
@@ -63,13 +103,13 @@ export const getPhotos = async (category, subcategory = null) => {
       console.log(`Found ${existingPhotos.length} real photos for ${subcategory}`);
       
       // Fill remaining slots with placeholders if needed
-      const remainingSlots = 2 - existingPhotos.length;
+      const remainingSlots = expectedPhotos - existingPhotos.length;
       if (remainingSlots > 0) {
         const placeholders = generatePlaceholders(category, subcategory, existingPhotos.length);
         return [...existingPhotos, ...placeholders.slice(0, remainingSlots)];
       }
       
-      return existingPhotos.slice(0, 2);
+      return existingPhotos.slice(0, expectedPhotos);
     }
     
     // No real photos found, return placeholders
@@ -153,7 +193,8 @@ const generatePlaceholders = (category, subcategory, startIndex = 0) => {
     const categoryData = GCS_CONFIG.photoStructure.bestPhotos.categories.find(c => c.name === subcategory);
     const categoryKey = categoryData?.key || subcategory.toLowerCase().replace(/\s+/g, '_');
     
-    for (let i = startIndex; i < 2; i++) {
+    // Create 6 placeholder photos for Family Moments
+    for (let i = startIndex; i < 6; i++) {
       placeholders.push({
         id: `${categoryKey}_placeholder_${i + 1}`,
         url: `https://via.placeholder.com/500x400/F0F8FF/667eea?text=${encodeURIComponent(`📸 ${subcategory}\nPhoto ${i + 1}\nUpload to GCS bucket`)}`,
@@ -226,21 +267,21 @@ const generateGCSPhotos = async (category, subcategory) => {
     
     // Check for photos in GCS bucket using the actual naming patterns from bucket
     const photoPatterns = [
-      'photo_1.jpg', 'photo_2.jpg', // Primary naming pattern found in bucket
-      'photo1.jpg', 'photo2.jpg',   // Alternative naming
-      '1.jpg', '2.jpg',             // Simple naming
-      'best_1.jpg', 'best_2.jpg',   // Category-based with underscore
-      'best1.jpg', 'best2.jpg',     // Category-based
-      'img_1.jpg', 'img_2.jpg',     // Alternative with underscore
-      'img1.jpg', 'img2.jpg',       // Alternative naming
-      'image_1.jpg', 'image_2.jpg', // Another pattern with underscore
-      'image1.jpg', 'image2.jpg'    // Another common pattern
+      'photo_1.jpg', 'photo_2.jpg', 'photo_3.jpg', 'photo_4.jpg', 'photo_5.jpg', 'photo_6.jpg', // Primary naming pattern found in bucket
+      'photo1.jpg', 'photo2.jpg', 'photo3.jpg', 'photo4.jpg', 'photo5.jpg', 'photo6.jpg',   // Alternative naming
+      '1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg',             // Simple naming
+      'family_1.jpg', 'family_2.jpg', 'family_3.jpg', 'family_4.jpg', 'family_5.jpg', 'family_6.jpg',   // Category-based with underscore
+      'family1.jpg', 'family2.jpg', 'family3.jpg', 'family4.jpg', 'family5.jpg', 'family6.jpg',     // Category-based
+      'img_1.jpg', 'img_2.jpg', 'img_3.jpg', 'img_4.jpg', 'img_5.jpg', 'img_6.jpg',     // Alternative with underscore
+      'img1.jpg', 'img2.jpg', 'img3.jpg', 'img4.jpg', 'img5.jpg', 'img6.jpg',       // Alternative naming
+      'image_1.jpg', 'image_2.jpg', 'image_3.jpg', 'image_4.jpg', 'image_5.jpg', 'image_6.jpg', // Another pattern with underscore
+      'image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg', 'image5.jpg', 'image6.jpg'    // Another common pattern
     ];
     
-    // Try to find exactly 2 photos for this category
+    // Try to find up to 6 photos for this category (Family Moments)
     let photoCount = 0;
     for (const fileName of photoPatterns) {
-      if (photoCount >= 2) break; // Stop when we have 2 photos
+      if (photoCount >= 6) break; // Stop when we have 6 photos
       
       const photoData = {
         id: `${categoryKey}_${photoCount + 1}`,
@@ -270,6 +311,8 @@ const generateGCSPhotos = async (category, subcategory) => {
 // Like functionality with heart emoji tracking (no unlikes)
 export const togglePhotoLike = async (photoUrl, userId = 'anonymous') => {
   try {
+    console.log('🚀 Starting togglePhotoLike operation:', { photoUrl, userId });
+    
     // Check if Firestore is available
     if (!db) {
       console.warn('⚠️ Firestore not available - running in demo mode');
@@ -285,22 +328,30 @@ export const togglePhotoLike = async (photoUrl, userId = 'anonymous') => {
       photoUrl,
       photoId,
       dbAvailable: !!db,
-      userId
+      userId,
+      docPath: `photoLikes/${photoId}`
     });
     
+    console.log('📡 Attempting to read document from Firestore...');
     const photoDoc = await getDoc(photoDocRef);
+    console.log('📄 Document read result:', { 
+      exists: photoDoc.exists(),
+      hasData: !!photoDoc.data() 
+    });
     console.log('📄 Document exists:', photoDoc.exists());
     
     if (!photoDoc.exists()) {
       // Create new photo likes document with heart emoji
+      const timestamp = new Date().toISOString();
       const newDocData = {
         photoUrl,
         photoId,
-        likes: [userId],
+        likes: [`${userId}_${timestamp}`], // Make each like unique with timestamp
         totalLikes: 1,
         heartEmoji: '❤️',
-        lastUpdated: new Date().toISOString(),
-        createdAt: new Date().toISOString()
+        lastUpdated: timestamp,
+        createdAt: timestamp,
+        lastLikedBy: userId
       };
       
       console.log('📝 Creating new document:', newDocData);
@@ -311,28 +362,23 @@ export const togglePhotoLike = async (photoUrl, userId = 'anonymous') => {
       const data = photoDoc.data();
       console.log('📊 Existing document data:', data);
       
-      const currentLikes = data.likes || [];
-      const isLiked = currentLikes.includes(userId);
+      // Always add like - no restriction on multiple likes per user
+      const newCount = (data.totalLikes || 0) + 1;
+      const timestamp = new Date().toISOString();
       
-      if (isLiked) {
-        // Already liked - don't allow unlikes, just return current count
-        console.log('💖 Photo already liked by user:', userId);
-        return data.totalLikes || 1;
-      } else {
-        // Add like
-        const newCount = (data.totalLikes || 0) + 1;
-        const updateData = {
-          likes: arrayUnion(userId),
-          totalLikes: newCount,
-          heartEmoji: '❤️',
-          lastUpdated: new Date().toISOString()
-        };
-        
-        console.log('🔄 Updating document with:', updateData);
-        await updateDoc(photoDocRef, updateData);
-        console.log(`✅ Like added! New count: ${newCount}`);
-        return newCount;
-      }
+      // Add user to likes array and increment count
+      const updateData = {
+        likes: arrayUnion(`${userId}_${timestamp}`), // Make each like unique with timestamp
+        totalLikes: newCount,
+        heartEmoji: '❤️',
+        lastUpdated: timestamp,
+        lastLikedBy: userId
+      };
+      
+      console.log('🔄 Always incrementing like count:', updateData);
+      await updateDoc(photoDocRef, updateData);
+      console.log(`✅ Like added! New count: ${newCount}`);
+      return newCount;
     }
   } catch (error) {
     console.error('❌ Error toggling like:', error);
@@ -355,26 +401,6 @@ export const togglePhotoLike = async (photoUrl, userId = 'anonymous') => {
     
     if (error.code === 'unavailable') {
       console.error('🌐 Firebase unavailable - network issues');
-      return 0;
-    }
-    
-    if (error.message && error.message.includes('timeout')) {
-      console.error('⏰ Firebase operation timeout');
-      return 0;
-    }
-    
-    // For any other error, return 0 to prevent UI breaking
-    console.warn('⚠️ Unknown error in like function, returning 0');
-    return 0;
-    }
-    
-    if (error.code === 'permission-denied') {
-      console.error('❌ Permission denied - check Firestore rules');
-      return 0;
-    }
-    
-    if (error.code === 'unavailable') {
-      console.error('❌ Firebase unavailable - network issues');
       return 0;
     }
     

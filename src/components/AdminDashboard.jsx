@@ -239,57 +239,78 @@ const AdminDashboard = () => {
         <TableContainer component={Paper} sx={{ 
           background: 'linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 100%)',
           border: '1px solid rgba(255, 215, 0, 0.2)',
-          borderRadius: 2
+          borderRadius: 2,
+          overflowX: 'auto', // Enable horizontal scroll on mobile
+          maxWidth: '100%'
         }}>
-          <Table>
+          <Table sx={{ minWidth: { xs: 650, sm: 'auto' } }}> {/* Minimum width for mobile scroll */}
             <TableHead>
               <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Mobile</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Adults</TableCell>
-                <TableCell>Children</TableCell>
-                <TableCell>Message</TableCell>
-                <TableCell>Date</TableCell>
-                <TableCell>Actions</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Name</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Mobile</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Adults</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Children</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' }, display: { xs: 'none', md: 'table-cell' } }}>Message</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' }, display: { xs: 'none', sm: 'table-cell' } }}>Date</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredRsvps.map((rsvp) => (
                 <TableRow key={rsvp.id}>
-                  <TableCell>{rsvp.name}</TableCell>
-                  <TableCell>{rsvp.mobile || 'N/A'}</TableCell>
-                  <TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, padding: { xs: '8px', sm: '16px' } }}>{rsvp.name}</TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, padding: { xs: '8px', sm: '16px' } }}>{rsvp.mobile || 'N/A'}</TableCell>
+                  <TableCell sx={{ padding: { xs: '8px', sm: '16px' } }}>
                     <Chip 
                       label={rsvp.attending === 'yes' ? 'Attending' : 'Not Attending'} 
                       color={rsvp.attending === 'yes' ? 'success' : 'default'}
                       size="small"
+                      sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' } }}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ padding: { xs: '8px', sm: '16px' } }}>
                     <Chip 
                       label={rsvp.adultCount || rsvp.adults || 0} 
                       color="primary"
                       size="small"
+                      sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' } }}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ padding: { xs: '8px', sm: '16px' } }}>
                     <Chip 
                       label={rsvp.childrenCount || rsvp.children?.length || 0} 
                       color="secondary"
                       size="small"
+                      sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' } }}
                     />
                   </TableCell>
-                  <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {rsvp.message || '-'}
+                  <TableCell sx={{ 
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' }, 
+                    padding: { xs: '8px', sm: '16px' },
+                    display: { xs: 'none', md: 'table-cell' },
+                    maxWidth: '200px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {rsvp.message || 'No message'}
                   </TableCell>
-                  <TableCell>{formatTimestamp(rsvp.createdAt)}</TableCell>
-                  <TableCell>
-                    <IconButton 
-                      color="error" 
+                  <TableCell sx={{ 
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' }, 
+                    padding: { xs: '8px', sm: '16px' },
+                    display: { xs: 'none', sm: 'table-cell' }
+                  }}>
+                    {rsvp.timestamp ? new Date(rsvp.timestamp).toLocaleDateString() : 'N/A'}
+                  </TableCell>
+                  <TableCell sx={{ padding: { xs: '4px', sm: '16px' } }}>
+                    <IconButton
+                      size="small"
+                      color="error"
                       onClick={() => openDeleteDialog('rsvp', rsvp.id, rsvp.name)}
+                      sx={{ minWidth: { xs: '36px', sm: '48px' }, minHeight: { xs: '36px', sm: '48px' } }}
                     >
-                      <DeleteIcon />
+                      <DeleteIcon sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }} />
                     </IconButton>
                   </TableCell>
                 </TableRow>

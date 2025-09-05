@@ -85,3 +85,11 @@ console.log('Firebase initialization complete:', {
   dbAvailable: !!db,
   storageAvailable: !!storage
 });
+
+// Make test function available globally for debugging
+if (typeof window !== 'undefined') {
+  window.testFirebase = async () => {
+    const { testFirebaseConnection } = await import('./services/photoService');
+    return await testFirebaseConnection();
+  };
+}
