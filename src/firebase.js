@@ -3,81 +3,52 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 
-// Enhanced validation for Cloud Run environment
-const validateFirebaseConfig = () => {
-  const requiredEnvVars = [
-    'REACT_APP_FIREBASE_PROJECT_ID',
-    'REACT_APP_FIREBASE_API_KEY',
-    'REACT_APP_FIREBASE_APP_ID'
-  ];
-  
-  const missingVars = requiredEnvVars.filter(envVar => 
-    !process.env[envVar] || 
-    process.env[envVar] === 'default-key' ||
-    process.env[envVar] === 'your-api-key' ||
-    process.env[envVar] === 'your-app-id' ||
-    process.env[envVar] === 'your-project-id'
-  );
-  
-  if (missingVars.length > 0) {
-    console.warn('Missing Firebase environment variables:', missingVars);
-    return false;
-  }
-  
-  return true;
+// Direct Firebase configuration - no environment variables needed
+const firebaseConfig = {
+  projectId: "kashvibirthday",
+  apiKey: "AIzaSyBvOiCik6fJMrCrPhqFgKLx1w1w-7QJgV4",
+  authDomain: "kashvibirthday.firebaseapp.com",
+  storageBucket: "kashvibirthday.appspot.com",
+  messagingSenderId: "279842866856",
+  appId: "1:279842866856:web:61e61fb3a145b7045dbf8502c"
 };
 
-// Check if we have valid Firebase credentials
-const hasValidCredentials = validateFirebaseConfig();
+// Event and Birthday Details - hardcoded
+export const eventDetails = {
+  birthdayDate: "2025-09-24",
+  eventDate: "2025-10-05",
+  eventVenue: "Mythri Banquet Hall",
+  eventAddress: "8350 N MacArthur Blvd Suite 190, Irving, TX 75063",
+  eventTime: "6:30 PM"
+};
 
-// Demo mode flag - set early and export immediately
-export const isDemoMode = !hasValidCredentials;
+console.log('� Initializing Firebase with hardcoded config:', {
+  projectId: firebaseConfig.projectId,
+  authDomain: firebaseConfig.authDomain,
+  storageBucket: firebaseConfig.storageBucket,
+  hasApiKey: !!firebaseConfig.apiKey,
+  hasAppId: !!firebaseConfig.appId
+});
 
-// Initialize Firebase services safely
+// Demo mode flag - always false since we have hardcoded config
+export const isDemoMode = false;
+
+// Initialize Firebase services
 let app = null;
 let db = null;
 let storage = null;
 
-// Only initialize Firebase if we have valid credentials
-if (hasValidCredentials) {
-  try {
-    // Build Firebase config with fallbacks for Cloud Run
-    const firebaseConfig = {
-      projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-      apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-      authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || `${process.env.REACT_APP_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-      storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || `${process.env.REACT_APP_FIREBASE_PROJECT_ID}.appspot.com`,
-      messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.REACT_APP_FIREBASE_APP_ID
-    };
-
-    console.log('🔥 Initializing Firebase with config:', {
-      projectId: firebaseConfig.projectId,
-      authDomain: firebaseConfig.authDomain,
-      storageBucket: firebaseConfig.storageBucket,
-      hasApiKey: !!firebaseConfig.apiKey,
-      hasAppId: !!firebaseConfig.appId
-    });
-
-    app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
-    storage = getStorage(app);
-    
-    console.log('✅ Firebase initialized successfully for Cloud Run');
-  } catch (error) {
-    console.error('❌ Firebase initialization failed:', error);
-    app = null;
-    db = null;
-    storage = null;
-  }
-} else {
-  console.warn('⚠️ Running in demo mode - Firebase services disabled');
-  console.log('Environment check:', {
-    NODE_ENV: process.env.NODE_ENV,
-    hasProjectId: !!process.env.REACT_APP_FIREBASE_PROJECT_ID,
-    hasApiKey: !!process.env.REACT_APP_FIREBASE_API_KEY,
-    hasAppId: !!process.env.REACT_APP_FIREBASE_APP_ID
-  });
+try {
+  app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+  storage = getStorage(app);
+  
+  console.log('✅ Firebase initialized successfully');
+} catch (error) {
+  console.error('❌ Firebase initialization failed:', error);
+  app = null;
+  db = null;
+  storage = null;
 }
 
 // Export the Firebase services (may be null in demo mode)
@@ -98,7 +69,7 @@ export const STORAGE_PATHS = {
 // For development/testing - connect to emulators if enabled
 if (process.env.NODE_ENV === 'development' && 
     process.env.REACT_APP_USE_FIREBASE_EMULATOR === 'true' && 
-    !isDemoMode && db && storage) {
+    db && storage) {
   try {
     // Connect to emulators
     connectFirestoreEmulator(db, 'localhost', 8080);

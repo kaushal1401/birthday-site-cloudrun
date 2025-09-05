@@ -8,6 +8,7 @@ import {
   CalendarToday 
 } from '@mui/icons-material';
 import { messagesService } from '../services/firestoreService';
+import { eventDetails } from '../firebase';
 
 // Add CSS animations
 const styles = `
@@ -43,7 +44,7 @@ const EventTimer = () => {
   const [recentMessages, setRecentMessages] = useState([]);
 
   function calculateBirthdayTimeLeft() {
-    const birthdayDate = process.env.REACT_APP_BIRTHDAY_DATE || '2025-10-05';
+    const birthdayDate = eventDetails.birthdayDate;
     const difference = new Date(`${birthdayDate}T00:00:00Z`) - new Date();
     let timeLeft = {};
 
@@ -60,7 +61,7 @@ const EventTimer = () => {
 
   function calculateEventTimeLeft() {
     // Event starts at 6:30 PM on October 5th, 2025
-    const eventDate = process.env.REACT_APP_EVENT_DATE || '2025-10-05';
+    const eventDate = eventDetails.eventDate;
     const difference = new Date(`${eventDate}T18:30:00-05:00`) - new Date(); // 6:30 PM CST
     let timeLeft = {};
 
@@ -378,7 +379,7 @@ const EventTimer = () => {
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, mb: 3 }}>
             <Typography sx={{ fontSize: '2rem' }}>🗓️</Typography>
             <Chip 
-              label="October 5th, 2025 - 6:30 PM" 
+              label={`${eventDetails.eventDate === '2025-10-05' ? 'October 5th, 2025' : eventDetails.eventDate} - ${eventDetails.eventTime}`} 
               sx={{ 
                 background: 'linear-gradient(45deg, #FFD700 30%, #FF6B9D 90%)',
                 color: 'white',
@@ -538,12 +539,10 @@ const EventTimer = () => {
               <CardContent sx={{ textAlign: 'center', p: 3 }}>
                 <LocationOn sx={{ fontSize: 40, color: '#FF6B9D', mb: 1 }} />
                 <Typography variant="h6" sx={{ color: '#2D3436', fontWeight: 'bold', mb: 1 }}>
-                  Mythri Banquet Hall
+                  {eventDetails.eventVenue}
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#636E72' }}>
-                  8350 N MacArthur Blvd Suite 190
-                  <br />
-                  Irving, TX 75063
+                  {eventDetails.eventAddress}
                 </Typography>
               </CardContent>
             </Card>
@@ -566,9 +565,9 @@ const EventTimer = () => {
                   Event Time
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#636E72' }}>
-                  6:30 PM onwards
+                  {eventDetails.eventTime} onwards
                   <br />
-                  October 5th, 2025
+                  {eventDetails.eventDate === '2025-10-05' ? 'October 5th, 2025' : eventDetails.eventDate}
                 </Typography>
               </CardContent>
             </Card>
